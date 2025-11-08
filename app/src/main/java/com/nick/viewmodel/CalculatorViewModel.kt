@@ -15,13 +15,15 @@ class CalculatorViewModel : ViewModel() {
     val operationStates = mutableStateMapOf("+" to true, "-" to false, "*" to false, "/" to false)
     val showHintsDialog = mutableStateOf(false)
     val unlockedOperationMessage = mutableStateOf<String?>(null)
+    val allOperationsUnlocked = mutableStateOf(false)
+    private var allOperationsAlreadyUnlocked = false
 
     val hints: List<HintInfo> = listOf(
         HintInfo(
             description = "Subtraction (-): 2+2",
             code = """
-                if (expression == \"2+2\") {
-                    operationStates[\"-\"] = true
+                if (expression == "2+2") {
+                    operationStates["-"] = true
                 }
             """.trimIndent(),
             isUnlocked = { operationStates["-"] == true }
@@ -29,8 +31,8 @@ class CalculatorViewModel : ViewModel() {
         HintInfo(
             description = "Division (/): 5-1",
             code = """
-                if (expression == \"5-1\") {
-                    operationStates[\"/\"] = true
+                if (expression == "5-1") {
+                    operationStates["/"] = true
                 }
             """.trimIndent(),
             isUnlocked = { operationStates["/"] == true }
@@ -39,7 +41,7 @@ class CalculatorViewModel : ViewModel() {
             description = "Multiplication (*): Attempt to divide by zero",
             code = """
                 if (result.isNaN()) {
-                   operationStates[\"*\"] = true
+                   operationStates["*"] = true
                 }
             """.trimIndent(),
             isUnlocked = { operationStates["*"] == true }
@@ -88,11 +90,11 @@ class CalculatorViewModel : ViewModel() {
                     // Cheat codes
                     if (expression == "2+2" && operationStates["-"] == false) {
                         operationStates["-"] = true
-                        unlockedOperationMessage.value = "Congratulations! You\'ve unlocked Subtraction!"
+                        unlockedOperationMessage.value = "Congratulations! You've unlocked Subtraction!"
                     }
                     if (expression == "5-1" && operationStates["-"] == true && operationStates["/"] == false) {
                         operationStates["/"] = true
-                        unlockedOperationMessage.value = "Congratulations! You\'ve unlocked Division!"
+                        unlockedOperationMessage.value = "Congratulations! You've unlocked Division!"
                     }
 
                     val result = evaluateExpression(expression)
@@ -100,11 +102,12 @@ class CalculatorViewModel : ViewModel() {
                     if (result.isNaN()) {
                         if (operationStates["*"] == false) {
                             operationStates["*"] = true
-                            unlockedOperationMessage.value = "Congratulations! You\'ve unlocked Multiplication!"
+                            unlockedOperationMessage.value = "Congratulations! You've unlocked Multiplication!"
                         }
                         display.value = "Error"
                         expression = ""
                         resultJustCalculated = true
+                        checkAllOperationsUnlocked()
                         return
                     }
 
@@ -116,6 +119,7 @@ class CalculatorViewModel : ViewModel() {
                     display.value = resultString
                     expression = resultString
                     resultJustCalculated = true
+                    checkAllOperationsUnlocked()
                 }
             }
             CalculatorAction.ShowHints -> showHintsDialog.value = true
@@ -125,6 +129,17 @@ class CalculatorViewModel : ViewModel() {
                 showHintsDialog.value = false
             }
             CalculatorAction.DismissUnlockMessage -> unlockedOperationMessage.value = null
+            CalculatorAction.DismissAllOperationsUnlockedDialog -> {
+                allOperationsUnlocked.value = false
+                allOperationsAlreadyUnlocked = true
+            }
+        }
+    }
+
+    private fun checkAllOperationsUnlocked() {
+        if (!allOperationsAlreadyUnlocked && operationStates.values.all { it }) {
+            allOperationsUnlocked.value = true
+            unlockedOperationMessage.value = null // Prevent double dialog
         }
     }
 
@@ -132,6 +147,7 @@ class CalculatorViewModel : ViewModel() {
         operationStates["-"] = false
         operationStates["*"] = false
         operationStates["/"] = false
+        allOperationsAlreadyUnlocked = false
     }
 
     private fun evaluateExpression(expression: String): Double {
@@ -169,4 +185,5 @@ sealed class CalculatorAction {
     object HideHints : CalculatorAction()
     object Reset : CalculatorAction()
     object DismissUnlockMessage : CalculatorAction()
+    object DismissAllOperationsUnlockedDialog : CalculatorAction()
 }

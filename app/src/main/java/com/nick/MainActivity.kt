@@ -5,14 +5,18 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -67,6 +71,10 @@ fun CalculatorScreen(modifier: Modifier = Modifier, viewModel: CalculatorViewMod
             message = message,
             onDismiss = { viewModel.onAction(CalculatorAction.DismissUnlockMessage) }
         )
+    }
+
+    if (viewModel.allOperationsUnlocked.value) {
+        AllOperationsUnlockedDialog(onDismiss = { viewModel.onAction(CalculatorAction.DismissAllOperationsUnlockedDialog) })
     }
 
     Column(
@@ -191,6 +199,40 @@ fun UnlockMessageDialog(message: String, onDismiss: () -> Unit) {
         onDismissRequest = onDismiss,
         title = { Text("Operation Unlocked!") },
         text = { Text(message) },
+        confirmButton = {
+            Button(onClick = onDismiss) {
+                Text("OK")
+            }
+        }
+    )
+}
+
+@Composable
+fun AllOperationsUnlockedDialog(onDismiss: () -> Unit) {
+    val scale = remember { Animatable(0f) }
+    LaunchedEffect(key1 = true) {
+        scale.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(
+                durationMillis = 1000,
+                easing = EaseOutBounce
+            )
+        )
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = "Congratulations!") },
+        text = { 
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "\uD83C\uDFC6",
+                    modifier = Modifier.scale(scale.value),
+                    fontSize = 100.sp
+                )
+                Text(text = "You have unlocked all the operations!")
+            }
+        },
         confirmButton = {
             Button(onClick = onDismiss) {
                 Text("OK")
