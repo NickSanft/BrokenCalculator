@@ -4,11 +4,47 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 
+data class HintInfo(
+    val description: String,
+    val code: String,
+    val isUnlocked: () -> Boolean
+)
+
 class CalculatorViewModel : ViewModel() {
     val display = mutableStateOf("0")
     val operationStates = mutableStateMapOf("+" to true, "-" to false, "*" to false, "/" to false)
     val showHintsDialog = mutableStateOf(false)
     val unlockedOperationMessage = mutableStateOf<String?>(null)
+
+    val hints: List<HintInfo> = listOf(
+        HintInfo(
+            description = "Subtraction (-): 2+2",
+            code = """
+                if (expression == \"2+2\") {
+                    operationStates[\"-\"] = true
+                }
+            """.trimIndent(),
+            isUnlocked = { operationStates["-"] == true }
+        ),
+        HintInfo(
+            description = "Division (/): 5-1",
+            code = """
+                if (expression == \"5-1\") {
+                    operationStates[\"/\"] = true
+                }
+            """.trimIndent(),
+            isUnlocked = { operationStates["/"] == true }
+        ),
+        HintInfo(
+            description = "Multiplication (*): Attempt to divide by zero",
+            code = """
+                if (result.isNaN()) {
+                   operationStates[\"*\"] = true
+                }
+            """.trimIndent(),
+            isUnlocked = { operationStates["*"] == true }
+        )
+    )
 
     private var expression = ""
     private var resultJustCalculated = false

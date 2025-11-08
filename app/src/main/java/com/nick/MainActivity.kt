@@ -13,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
@@ -141,27 +142,18 @@ fun CalculatorScreen(modifier: Modifier = Modifier, viewModel: CalculatorViewMod
 fun HintsDialog(viewModel: CalculatorViewModel, onDismiss: () -> Unit, onReset: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Hints") },
+        title = { Text("How to Unlock Operations") },
         text = {
-            Column {
-                Text(
-                    text = "This calculator is busted, man. for some reason putting certain equations in fixes it. \r\n\r\n Hints: \r\n"
-                )
-                Text(
-                    text = "Subtraction (-): 2+2",
-                    textDecoration = if (viewModel.operationStates["-"] == true) TextDecoration.LineThrough else null
-                )
-                if (viewModel.operationStates["-"] == true) {
-                    Text(
-                        text = "Division (/): 5-1",
-                        textDecoration = if (viewModel.operationStates["/"] == true) TextDecoration.LineThrough else null
-                    )
-                }
-                if (viewModel.operationStates["/"] == true) {
-                    Text(
-                        text = "Multiplication (*): Attempt to divide by zero",
-                        textDecoration = if (viewModel.operationStates["*"] == true) TextDecoration.LineThrough else null
-                    )
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("This calculator is busted, man. For some reason, putting certain equations in fixes it.\n\nHints:")
+                viewModel.hints.forEachIndexed { index, hint ->
+                    if (index == 0 || viewModel.hints[index - 1].isUnlocked()) {
+                        Text(
+                            text = hint.description,
+                            textDecoration = if (hint.isUnlocked()) TextDecoration.LineThrough else null
+                        )
+                        CodeSnippet(code = hint.code)
+                    }
                 }
             }
         },
@@ -176,6 +168,21 @@ fun HintsDialog(viewModel: CalculatorViewModel, onDismiss: () -> Unit, onReset: 
             }
         }
     )
+}
+
+@Composable
+fun CodeSnippet(code: String) {
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        shape = MaterialTheme.shapes.small
+    ) {
+        Text(
+            text = code,
+            modifier = Modifier.fillMaxWidth().padding(8.dp),
+            fontFamily = FontFamily.Monospace,
+            fontSize = 12.sp
+        )
+    }
 }
 
 @Composable
