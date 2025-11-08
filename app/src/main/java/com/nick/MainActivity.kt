@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -54,6 +55,7 @@ class MainActivity : ComponentActivity() {
 fun CalculatorScreen(modifier: Modifier = Modifier, viewModel: CalculatorViewModel) {
     if (viewModel.showHintsDialog.value) {
         HintsDialog(
+            viewModel = viewModel,
             onDismiss = { viewModel.onAction(CalculatorAction.HideHints) },
             onReset = { viewModel.onAction(CalculatorAction.Reset) }
         )
@@ -136,15 +138,31 @@ fun CalculatorScreen(modifier: Modifier = Modifier, viewModel: CalculatorViewMod
 }
 
 @Composable
-fun HintsDialog(onDismiss: () -> Unit, onReset: () -> Unit) {
+fun HintsDialog(viewModel: CalculatorViewModel, onDismiss: () -> Unit, onReset: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("How to Unlock Operations") },
+        title = { Text("Hints") },
         text = {
             Column {
-                Text("Subtraction (-): 2+2")
-                Text("Division (/): 5-1 (after unlocking subtraction)")
-                Text("Multiplication (*): Attempt to divide by zero")
+                Text(
+                    text = "This calculator is busted, man. for some reason putting certain equations in fixes it. \r\n\r\n Hints: \r\n"
+                )
+                Text(
+                    text = "Subtraction (-): 2+2",
+                    textDecoration = if (viewModel.operationStates["-"] == true) TextDecoration.LineThrough else null
+                )
+                if (viewModel.operationStates["-"] == true) {
+                    Text(
+                        text = "Division (/): 5-1",
+                        textDecoration = if (viewModel.operationStates["/"] == true) TextDecoration.LineThrough else null
+                    )
+                }
+                if (viewModel.operationStates["/"] == true) {
+                    Text(
+                        text = "Multiplication (*): Attempt to divide by zero",
+                        textDecoration = if (viewModel.operationStates["*"] == true) TextDecoration.LineThrough else null
+                    )
+                }
             }
         },
         confirmButton = {

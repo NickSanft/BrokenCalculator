@@ -44,7 +44,7 @@ class CalculatorViewModel : ViewModel() {
                     resultJustCalculated = false
                 } else if (expression.isNotEmpty()) {
                     expression = expression.dropLast(1)
-                    display.value = if (expression.isEmpty()) "0" else expression
+                    display.value = expression.ifEmpty { "0" }
                 }
             }
             CalculatorAction.Equals -> {
