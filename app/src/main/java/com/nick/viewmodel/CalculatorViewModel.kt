@@ -6,7 +6,8 @@ import androidx.lifecycle.ViewModel
 
 class CalculatorViewModel : ViewModel() {
     val display = mutableStateOf("0")
-    val operationStates = mutableStateMapOf("+" to true, "-" to true, "*" to true, "/" to true)
+    val operationStates = mutableStateMapOf("+" to true, "-" to false, "*" to false, "/" to false)
+    val showHintsDialog = mutableStateOf(false)
 
     private var expression = ""
     private var resultJustCalculated = false
@@ -15,7 +16,7 @@ class CalculatorViewModel : ViewModel() {
         when (action) {
             is CalculatorAction.Number -> {
                 if (resultJustCalculated) {
-                    expression = "" // Start new expression
+                    expression = ""
                     resultJustCalculated = false
                 }
                 expression += action.number
@@ -23,7 +24,6 @@ class CalculatorViewModel : ViewModel() {
             }
             is CalculatorAction.Operation -> {
                 if (operationStates[action.operation] == true) {
-                    // Prevent adding multiple operators or adding an operator at the start
                     if (expression.isNotEmpty() && expression.last().isDigit()) {
                         expression += action.operation
                         display.value = expression
@@ -38,8 +38,23 @@ class CalculatorViewModel : ViewModel() {
             }
             CalculatorAction.Equals -> {
                 if (expression.isNotEmpty() && expression.last().isDigit()) {
+                    if (expression == "2+2") {
+                        operationStates["-"] = true
+                    }
+                    if (expression == "5-1" && operationStates["-"] == true) {
+                        operationStates["/"] = true
+                    }
+
                     val result = evaluateExpression(expression)
-                    // Format result to remove .0 for whole numbers
+
+                    if (result.isNaN()) {
+                        operationStates["*"] = true
+                        display.value = "Error"
+                        expression = ""
+                        resultJustCalculated = true
+                        return
+                    }
+
                     val resultString = if (result.rem(1.0) == 0.0) {
                         result.toLong().toString()
                     } else {
@@ -50,11 +65,12 @@ class CalculatorViewModel : ViewModel() {
                     resultJustCalculated = true
                 }
             }
+            CalculatorAction.ShowHints -> showHintsDialog.value = true
+            CalculatorAction.HideHints -> showHintsDialog.value = false
         }
     }
 
     private fun evaluateExpression(expression: String): Double {
-        // This evaluation is left-to-right and does not follow standard operator precedence.
         val numbers = expression.split(Regex("[+\\-*/]")).mapNotNull { it.toDoubleOrNull() }.toMutableList()
         val ops = expression.filter { it in "+-*/" }.toMutableList()
 
@@ -64,7 +80,7 @@ class CalculatorViewModel : ViewModel() {
 
         while (ops.isNotEmpty()) {
             val op = ops.removeAt(0)
-            if (numbers.isEmpty()) break // Handles trailing operator case e.g. "5+"
+            if (numbers.isEmpty()) break
             val number = numbers.removeAt(0)
             result = when (op) {
                 '+' -> result + number
@@ -84,4 +100,6 @@ sealed class CalculatorAction {
     data class Operation(val operation: String) : CalculatorAction()
     object Clear : CalculatorAction()
     object Equals : CalculatorAction()
+    object ShowHints : CalculatorAction()
+    object HideHints : CalculatorAction()
 }

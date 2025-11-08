@@ -6,9 +6,9 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Button
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,12 +21,19 @@ import com.nick.viewmodel.CalculatorViewModel
 class MainActivity : ComponentActivity() {
     private val viewModel: CalculatorViewModel by viewModels()
 
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             BrokenCalculatorTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                Scaffold(topBar = {
+                    TopAppBar(title = { Text("Broken Calculator") }, actions = {
+                        IconButton(onClick = { viewModel.onAction(CalculatorAction.ShowHints) }) {
+                            Icon(Icons.Default.Info, contentDescription = "Hints")
+                        }
+                    })
+                }) { innerPadding ->
                     CalculatorScreen(
                         modifier = Modifier.padding(innerPadding),
                         viewModel = viewModel
@@ -39,6 +46,10 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun CalculatorScreen(modifier: Modifier = Modifier, viewModel: CalculatorViewModel) {
+    if (viewModel.showHintsDialog.value) {
+        HintsDialog(onDismiss = { viewModel.onAction(CalculatorAction.HideHints) })
+    }
+
     Column(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Bottom,
@@ -95,6 +106,26 @@ fun CalculatorScreen(modifier: Modifier = Modifier, viewModel: CalculatorViewMod
             ) { Text("+") }
         }
     }
+}
+
+@Composable
+fun HintsDialog(onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("How to Unlock Operations") },
+        text = {
+            Column {
+                Text("Subtraction (-): 2+2")
+                Text("Division (/): 5-1 (after unlocking subtraction)")
+                Text("Multiplication (*): Attempt to divide by zero")
+            }
+        },
+        confirmButton = {
+            Button(onClick = onDismiss) {
+                Text("Close")
+            }
+        }
+    )
 }
 
 @Preview(showBackground = true)
