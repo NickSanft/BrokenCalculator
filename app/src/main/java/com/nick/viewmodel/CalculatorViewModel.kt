@@ -8,6 +8,7 @@ class CalculatorViewModel : ViewModel() {
     val display = mutableStateOf("0")
     val operationStates = mutableStateMapOf("+" to true, "-" to false, "*" to false, "/" to false)
     val showHintsDialog = mutableStateOf(false)
+    val unlockedOperationMessage = mutableStateOf<String?>(null)
 
     private var expression = ""
     private var resultJustCalculated = false
@@ -36,19 +37,35 @@ class CalculatorViewModel : ViewModel() {
                 display.value = "0"
                 resultJustCalculated = false
             }
+            CalculatorAction.Backspace -> {
+                if (resultJustCalculated) {
+                    expression = ""
+                    display.value = "0"
+                    resultJustCalculated = false
+                } else if (expression.isNotEmpty()) {
+                    expression = expression.dropLast(1)
+                    display.value = if (expression.isEmpty()) "0" else expression
+                }
+            }
             CalculatorAction.Equals -> {
                 if (expression.isNotEmpty() && expression.last().isDigit()) {
-                    if (expression == "2+2") {
+                    // Cheat codes
+                    if (expression == "2+2" && operationStates["-"] == false) {
                         operationStates["-"] = true
+                        unlockedOperationMessage.value = "Congratulations! You\'ve unlocked Subtraction!"
                     }
-                    if (expression == "5-1" && operationStates["-"] == true) {
+                    if (expression == "5-1" && operationStates["-"] == true && operationStates["/"] == false) {
                         operationStates["/"] = true
+                        unlockedOperationMessage.value = "Congratulations! You\'ve unlocked Division!"
                     }
 
                     val result = evaluateExpression(expression)
 
                     if (result.isNaN()) {
-                        operationStates["*"] = true
+                        if (operationStates["*"] == false) {
+                            operationStates["*"] = true
+                            unlockedOperationMessage.value = "Congratulations! You\'ve unlocked Multiplication!"
+                        }
                         display.value = "Error"
                         expression = ""
                         resultJustCalculated = true
@@ -67,7 +84,18 @@ class CalculatorViewModel : ViewModel() {
             }
             CalculatorAction.ShowHints -> showHintsDialog.value = true
             CalculatorAction.HideHints -> showHintsDialog.value = false
+            CalculatorAction.Reset -> {
+                resetOperations()
+                showHintsDialog.value = false
+            }
+            CalculatorAction.DismissUnlockMessage -> unlockedOperationMessage.value = null
         }
+    }
+
+    private fun resetOperations() {
+        operationStates["-"] = false
+        operationStates["*"] = false
+        operationStates["/"] = false
     }
 
     private fun evaluateExpression(expression: String): Double {
@@ -84,9 +112,9 @@ class CalculatorViewModel : ViewModel() {
             val number = numbers.removeAt(0)
             result = when (op) {
                 '+' -> result + number
-                '-' -> result - number
-                '*' -> result * number
-                '/' -> if (number != 0.0) result / number else Double.NaN
+                '-' -> if (operationStates["-"] == true) result - number else result
+                '*' -> if (operationStates["*"] == true) result * number else result
+                '/' -> if (operationStates["/"] == true && number != 0.0) result / number else if (number == 0.0) Double.NaN else result
                 else -> result
             }
         }
@@ -99,7 +127,10 @@ sealed class CalculatorAction {
     data class Number(val number: String) : CalculatorAction()
     data class Operation(val operation: String) : CalculatorAction()
     object Clear : CalculatorAction()
+    object Backspace : CalculatorAction()
     object Equals : CalculatorAction()
     object ShowHints : CalculatorAction()
     object HideHints : CalculatorAction()
+    object Reset : CalculatorAction()
+    object DismissUnlockMessage : CalculatorAction()
 }
