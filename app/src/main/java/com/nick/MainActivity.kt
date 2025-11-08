@@ -53,7 +53,10 @@ fun CalculatorScreen(modifier: Modifier = Modifier, viewModel: CalculatorViewMod
             Button(onClick = { viewModel.onAction(CalculatorAction.Number("7")) }) { Text("7") }
             Button(onClick = { viewModel.onAction(CalculatorAction.Number("8")) }) { Text("8") }
             Button(onClick = { viewModel.onAction(CalculatorAction.Number("9")) }) { Text("9") }
-            Button(onClick = { viewModel.onAction(CalculatorAction.Operation("/")) }) { Text("/") }
+            Button(
+                onClick = { viewModel.onAction(CalculatorAction.Operation("/")) },
+                enabled = viewModel.operationStates["/"] ?: false
+            ) { Text("/") }
         }
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -62,7 +65,10 @@ fun CalculatorScreen(modifier: Modifier = Modifier, viewModel: CalculatorViewMod
             Button(onClick = { viewModel.onAction(CalculatorAction.Number("4")) }) { Text("4") }
             Button(onClick = { viewModel.onAction(CalculatorAction.Number("5")) }) { Text("5") }
             Button(onClick = { viewModel.onAction(CalculatorAction.Number("6")) }) { Text("6") }
-            Button(onClick = { viewModel.onAction(CalculatorAction.Operation("*")) }) { Text("*") }
+            Button(
+                onClick = { viewModel.onAction(CalculatorAction.Operation("*")) },
+                enabled = viewModel.operationStates["*"] ?: false
+            ) { Text("*") }
         }
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -71,7 +77,10 @@ fun CalculatorScreen(modifier: Modifier = Modifier, viewModel: CalculatorViewMod
             Button(onClick = { viewModel.onAction(CalculatorAction.Number("1")) }) { Text("1") }
             Button(onClick = { viewModel.onAction(CalculatorAction.Number("2")) }) { Text("2") }
             Button(onClick = { viewModel.onAction(CalculatorAction.Number("3")) }) { Text("3") }
-            Button(onClick = { viewModel.onAction(CalculatorAction.Operation("-")) }) { Text("-") }
+            Button(
+                onClick = { viewModel.onAction(CalculatorAction.Operation("-")) },
+                enabled = viewModel.operationStates["-"] ?: false
+            ) { Text("-") }
         }
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -80,7 +89,10 @@ fun CalculatorScreen(modifier: Modifier = Modifier, viewModel: CalculatorViewMod
             Button(onClick = { viewModel.onAction(CalculatorAction.Number("0")) }) { Text("0") }
             Button(onClick = { viewModel.onAction(CalculatorAction.Clear) }) { Text("C") }
             Button(onClick = { viewModel.onAction(CalculatorAction.Equals) }) { Text("=") }
-            Button(onClick = { viewModel.onAction(CalculatorAction.Operation("+")) }) { Text("+") }
+            Button(
+                onClick = { viewModel.onAction(CalculatorAction.Operation("+")) },
+                enabled = viewModel.operationStates["+"] ?: false
+            ) { Text("+") }
         }
     }
 }

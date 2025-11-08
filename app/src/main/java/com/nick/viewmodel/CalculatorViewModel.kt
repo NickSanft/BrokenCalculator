@@ -1,10 +1,12 @@
 package com.nick.viewmodel
 
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 
 class CalculatorViewModel : ViewModel() {
     val display = mutableStateOf("0")
+    val operationStates = mutableStateMapOf("+" to true, "-" to true, "*" to true, "/" to true)
 
     private var expression = ""
     private var resultJustCalculated = false
@@ -20,11 +22,13 @@ class CalculatorViewModel : ViewModel() {
                 display.value = expression
             }
             is CalculatorAction.Operation -> {
-                // Prevent adding multiple operators or adding an operator at the start
-                if (expression.isNotEmpty() && expression.last().isDigit()) {
-                    expression += action.operation
-                    display.value = expression
-                    resultJustCalculated = false
+                if (operationStates[action.operation] == true) {
+                    // Prevent adding multiple operators or adding an operator at the start
+                    if (expression.isNotEmpty() && expression.last().isDigit()) {
+                        expression += action.operation
+                        display.value = expression
+                        resultJustCalculated = false
+                    }
                 }
             }
             CalculatorAction.Clear -> {
