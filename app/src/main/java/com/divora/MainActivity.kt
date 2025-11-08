@@ -1,5 +1,6 @@
 package com.divora
 
+import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -7,6 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
@@ -17,6 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -77,72 +80,84 @@ fun CalculatorScreen(modifier: Modifier = Modifier, viewModel: CalculatorViewMod
         AllOperationsUnlockedDialog(onDismiss = { viewModel.onAction(CalculatorAction.DismissAllOperationsUnlockedDialog) })
     }
 
-    Column(
-        modifier = modifier.fillMaxSize().padding(8.dp),
-        verticalArrangement = Arrangement.Bottom,
-        horizontalAlignment = Alignment.CenterHorizontally
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+    if (isLandscape) {
+        Row(modifier = modifier.fillMaxSize().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                viewModel.display.value,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(16.dp),
+                style = MaterialTheme.typography.headlineLarge.copy(fontSize = 60.sp, textAlign = TextAlign.End)
+            )
+            CalculatorButtons(viewModel = viewModel, modifier = Modifier.weight(1f))
+        }
+    } else { // Portrait
+        Column(
+            modifier = modifier.fillMaxSize().padding(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Bottom
+        ) {
+            Text(
+                viewModel.display.value,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                style = MaterialTheme.typography.headlineLarge.copy(fontSize = 60.sp, textAlign = TextAlign.End)
+            )
+            CalculatorButtons(viewModel = viewModel)
+        }
+    }
+}
+
+@Composable
+fun CalculatorButtons(viewModel: CalculatorViewModel, modifier: Modifier = Modifier) {
+    val buttonSpacing = 4.dp
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(buttonSpacing)) {
+        Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(buttonSpacing)) {
+            CalculatorButton("7", modifier = Modifier.weight(1f)) { viewModel.onAction(CalculatorAction.Number("7")) }
+            CalculatorButton("8", modifier = Modifier.weight(1f)) { viewModel.onAction(CalculatorAction.Number("8")) }
+            CalculatorButton("9", modifier = Modifier.weight(1f)) { viewModel.onAction(CalculatorAction.Number("9")) }
+            CalculatorButton("/", modifier = Modifier.weight(1f), enabled = viewModel.operationStates["/"] ?: false) { viewModel.onAction(CalculatorAction.Operation("/")) }
+        }
+        Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(buttonSpacing)) {
+            CalculatorButton("4", modifier = Modifier.weight(1f)) { viewModel.onAction(CalculatorAction.Number("4")) }
+            CalculatorButton("5", modifier = Modifier.weight(1f)) { viewModel.onAction(CalculatorAction.Number("5")) }
+            CalculatorButton("6", modifier = Modifier.weight(1f)) { viewModel.onAction(CalculatorAction.Number("6")) }
+            CalculatorButton("*", modifier = Modifier.weight(1f), enabled = viewModel.operationStates["*"] ?: false) { viewModel.onAction(CalculatorAction.Operation("*")) }
+        }
+        Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(buttonSpacing)) {
+            CalculatorButton("1", modifier = Modifier.weight(1f)) { viewModel.onAction(CalculatorAction.Number("1")) }
+            CalculatorButton("2", modifier = Modifier.weight(1f)) { viewModel.onAction(CalculatorAction.Number("2")) }
+            CalculatorButton("3", modifier = Modifier.weight(1f)) { viewModel.onAction(CalculatorAction.Number("3")) }
+            CalculatorButton("-", modifier = Modifier.weight(1f), enabled = viewModel.operationStates["-"] ?: false) { viewModel.onAction(CalculatorAction.Operation("-")) }
+        }
+        Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(buttonSpacing)) {
+            CalculatorButton("0", modifier = Modifier.weight(1f)) { viewModel.onAction(CalculatorAction.Number("0")) }
+            CalculatorButton("C", modifier = Modifier.weight(1f)) { viewModel.onAction(CalculatorAction.Clear) }
+            CalculatorButton("=", modifier = Modifier.weight(1f)) { viewModel.onAction(CalculatorAction.Equals) }
+            CalculatorButton("+", modifier = Modifier.weight(1f), enabled = viewModel.operationStates["+"] ?: false) { viewModel.onAction(CalculatorAction.Operation("+")) }
+        }
+    }
+}
+
+@Composable
+fun RowScope.CalculatorButton(
+    text: String,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    onClick: () -> Unit
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier.fillMaxHeight(),
+        enabled = enabled,
+        shape = RoundedCornerShape(12.dp),
+        contentPadding = PaddingValues(0.dp)
     ) {
-        Text(
-            viewModel.display.value, 
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
-            style = MaterialTheme.typography.headlineLarge.copy(fontSize = 60.sp, textAlign = TextAlign.End)
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-
-        val buttonModifier = Modifier.weight(1f).aspectRatio(1f).padding(4.dp)
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Button(onClick = { viewModel.onAction(CalculatorAction.Number("7")) }, modifier = buttonModifier) { Text("7", fontSize = 32.sp) }
-            Button(onClick = { viewModel.onAction(CalculatorAction.Number("8")) }, modifier = buttonModifier) { Text("8", fontSize = 32.sp) }
-            Button(onClick = { viewModel.onAction(CalculatorAction.Number("9")) }, modifier = buttonModifier) { Text("9", fontSize = 32.sp) }
-            Button(
-                onClick = { viewModel.onAction(CalculatorAction.Operation("/")) },
-                enabled = viewModel.operationStates["/"] ?: false,
-                modifier = buttonModifier
-            ) { Text("/", fontSize = 32.sp) }
-        }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Button(onClick = { viewModel.onAction(CalculatorAction.Number("4")) }, modifier = buttonModifier) { Text("4", fontSize = 32.sp) }
-            Button(onClick = { viewModel.onAction(CalculatorAction.Number("5")) }, modifier = buttonModifier) { Text("5", fontSize = 32.sp) }
-            Button(onClick = { viewModel.onAction(CalculatorAction.Number("6")) }, modifier = buttonModifier) { Text("6", fontSize = 32.sp) }
-            Button(
-                onClick = { viewModel.onAction(CalculatorAction.Operation("*")) },
-                enabled = viewModel.operationStates["*"] ?: false,
-                modifier = buttonModifier
-            ) { Text("*", fontSize = 32.sp) }
-        }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Button(onClick = { viewModel.onAction(CalculatorAction.Number("1")) }, modifier = buttonModifier) { Text("1", fontSize = 32.sp) }
-            Button(onClick = { viewModel.onAction(CalculatorAction.Number("2")) }, modifier = buttonModifier) { Text("2", fontSize = 32.sp) }
-            Button(onClick = { viewModel.onAction(CalculatorAction.Number("3")) }, modifier = buttonModifier) { Text("3", fontSize = 32.sp) }
-            Button(
-                onClick = { viewModel.onAction(CalculatorAction.Operation("-")) },
-                enabled = viewModel.operationStates["-"] ?: false,
-                modifier = buttonModifier
-            ) { Text("-", fontSize = 32.sp) }
-        }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Button(onClick = { viewModel.onAction(CalculatorAction.Number("0")) }, modifier = buttonModifier) { Text("0", fontSize = 32.sp) }
-            Button(onClick = { viewModel.onAction(CalculatorAction.Clear) }, modifier = buttonModifier) { Text("C", fontSize = 32.sp) }
-            Button(onClick = { viewModel.onAction(CalculatorAction.Equals) }, modifier = buttonModifier) { Text("=", fontSize = 32.sp) }
-            Button(
-                onClick = { viewModel.onAction(CalculatorAction.Operation("+")) },
-                enabled = viewModel.operationStates["+"] ?: false,
-                modifier = buttonModifier
-            ) { Text("+", fontSize = 32.sp) }
-        }
+        Text(text, fontSize = 32.sp)
     }
 }
 
