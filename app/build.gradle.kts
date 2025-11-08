@@ -5,13 +5,13 @@ plugins {
 }
 
 android {
-    namespace = "com.nick"
+    namespace = "com.divora"
     compileSdk {
         version = release(36)
     }
 
     defaultConfig {
-        applicationId = "com.nick"
+        applicationId = "com.divora"
         minSdk = 24
         targetSdk = 36
         versionCode = 1

@@ -1,4 +1,4 @@
-package com.nick.ui.theme
+package com.divora.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

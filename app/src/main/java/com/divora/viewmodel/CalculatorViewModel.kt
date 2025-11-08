@@ -1,4 +1,4 @@
-package com.nick.viewmodel
+package com.divora.viewmodel
 
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf

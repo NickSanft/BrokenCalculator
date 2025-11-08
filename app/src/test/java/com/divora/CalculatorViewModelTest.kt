@@ -1,8 +1,7 @@
-package com.nick
+package com.divora
 
-import com.nick.viewmodel.CalculatorAction
-import com.nick.viewmodel.CalculatorViewModel
-import org.junit.Assert.assertEquals
+import com.divora.viewmodel.CalculatorAction
+import com.divora.viewmodel.CalculatorViewModel
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
