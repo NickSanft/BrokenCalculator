@@ -1,8 +1,13 @@
 package com.divora.viewmodel
 
+import android.app.Application
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import com.divora.data.UserDataStore
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 data class HintInfo(
     val description: String,
@@ -10,13 +15,32 @@ data class HintInfo(
     val isUnlocked: () -> Boolean
 )
 
-class CalculatorViewModel : ViewModel() {
+data class Achievement(
+    val title: String,
+    val description: String,
+    val isUnlocked: () -> Boolean
+)
+
+class CalculatorViewModel(application: Application) : AndroidViewModel(application) {
+    private val userDataStore = UserDataStore(application)
+
     val display = mutableStateOf("0")
     val operationStates = mutableStateMapOf("+" to true, "-" to false, "*" to false, "/" to false)
     val showHintsDialog = mutableStateOf(false)
+    val showAchievementsDialog = mutableStateOf(false)
     val unlockedOperationMessage = mutableStateOf<String?>(null)
     val allOperationsUnlocked = mutableStateOf(false)
+    val calculationTrigger = mutableStateOf(0)
     private var allOperationsAlreadyUnlocked = false
+    val answerAchievementUnlocked = mutableStateOf(false)
+
+    val achievements: List<Achievement> = listOf(
+        Achievement("The First Step", "Unlock the subtraction operation.") { operationStates["-"] == true },
+        Achievement("The Second Step", "Unlock the division operation.") { operationStates["/"] == true },
+        Achievement("The Third Step", "Unlock the multiplication operation.") { operationStates["*"] == true },
+        Achievement("The Whole Calculator", "Unlock all operations.") { allOperationsAlreadyUnlocked },
+        Achievement("The Answer", "Calculate the answer to the ultimate question of life, the universe, and everything.") { answerAchievementUnlocked.value }
+    )
 
     val hints: List<HintInfo> = listOf(
         HintInfo(
@@ -50,6 +74,16 @@ class CalculatorViewModel : ViewModel() {
 
     private var expression = ""
     private var resultJustCalculated = false
+
+    init {
+        viewModelScope.launch {
+            operationStates["-"] = userDataStore.subtractionUnlockedFlow.first()
+            operationStates["/"] = userDataStore.divisionUnlockedFlow.first()
+            operationStates["*"] = userDataStore.multiplicationUnlockedFlow.first()
+            allOperationsAlreadyUnlocked = userDataStore.allOperationsUnlockedAlreadyFlow.first()
+            answerAchievementUnlocked.value = userDataStore.answerAchievementUnlockedFlow.first()
+        }
+    }
 
     fun onAction(action: CalculatorAction) {
         when (action) {
@@ -87,14 +121,17 @@ class CalculatorViewModel : ViewModel() {
             }
             CalculatorAction.Equals -> {
                 if (expression.isNotEmpty() && expression.last().isDigit()) {
+                    calculationTrigger.value++
                     // Cheat codes
                     if (expression == "2+2" && operationStates["-"] == false) {
                         operationStates["-"] = true
                         unlockedOperationMessage.value = "Congratulations! You've unlocked Subtraction!"
+                        viewModelScope.launch { userDataStore.setOperationUnlocked("-", true) }
                     }
                     if (expression == "5-1" && operationStates["-"] == true && operationStates["/"] == false) {
                         operationStates["/"] = true
                         unlockedOperationMessage.value = "Congratulations! You've unlocked Division!"
+                        viewModelScope.launch { userDataStore.setOperationUnlocked("/", true) }
                     }
 
                     val result = evaluateExpression(expression)
@@ -103,6 +140,7 @@ class CalculatorViewModel : ViewModel() {
                         if (operationStates["*"] == false) {
                             operationStates["*"] = true
                             unlockedOperationMessage.value = "Congratulations! You've unlocked Multiplication!"
+                            viewModelScope.launch { userDataStore.setOperationUnlocked("*", true) }
                         }
                         display.value = "Error"
                         expression = ""
@@ -120,18 +158,29 @@ class CalculatorViewModel : ViewModel() {
                     expression = resultString
                     resultJustCalculated = true
                     checkAllOperationsUnlocked()
+
+                    if (resultString == "42") {
+                        answerAchievementUnlocked.value = true
+                        viewModelScope.launch { userDataStore.setAnswerAchievementUnlocked(true) }
+                    }
                 }
             }
             CalculatorAction.ShowHints -> showHintsDialog.value = true
             CalculatorAction.HideHints -> showHintsDialog.value = false
+            CalculatorAction.ShowAchievements -> showAchievementsDialog.value = true
+            CalculatorAction.HideAchievements -> showAchievementsDialog.value = false
             CalculatorAction.Reset -> {
-                resetOperations()
+                viewModelScope.launch {
+                    userDataStore.resetOperations()
+                    resetOperations()
+                }
                 showHintsDialog.value = false
             }
             CalculatorAction.DismissUnlockMessage -> unlockedOperationMessage.value = null
             CalculatorAction.DismissAllOperationsUnlockedDialog -> {
                 allOperationsUnlocked.value = false
                 allOperationsAlreadyUnlocked = true
+                viewModelScope.launch { userDataStore.setAllOperationsAlreadyUnlocked(true) }
             }
         }
     }
@@ -148,6 +197,7 @@ class CalculatorViewModel : ViewModel() {
         operationStates["*"] = false
         operationStates["/"] = false
         allOperationsAlreadyUnlocked = false
+        answerAchievementUnlocked.value = false
     }
 
     private fun evaluateExpression(expression: String): Double {
@@ -183,6 +233,8 @@ sealed class CalculatorAction {
     object Equals : CalculatorAction()
     object ShowHints : CalculatorAction()
     object HideHints : CalculatorAction()
+    object ShowAchievements : CalculatorAction()
+    object HideAchievements : CalculatorAction()
     object Reset : CalculatorAction()
     object DismissUnlockMessage : CalculatorAction()
     object DismissAllOperationsUnlockedDialog : CalculatorAction()
