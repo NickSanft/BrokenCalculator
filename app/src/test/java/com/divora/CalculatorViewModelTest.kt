@@ -13,7 +13,9 @@ class CalculatorViewModelTest {
 
     @Before
     fun setup() {
-        viewModel = CalculatorViewModel()
+        viewModel = CalculatorViewModel(
+            application = TODO()
+        )
     }
 
     @Test
