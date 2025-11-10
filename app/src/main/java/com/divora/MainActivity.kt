@@ -21,6 +21,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -127,31 +129,38 @@ fun CalculatorScreen(modifier: Modifier = Modifier, viewModel: CalculatorViewMod
 
 @Composable
 fun CalculatorButtons(viewModel: CalculatorViewModel, modifier: Modifier = Modifier) {
+    val haptic = LocalHapticFeedback.current
     val buttonSpacing = 4.dp
+
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(buttonSpacing)) {
         Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(buttonSpacing)) {
-            CalculatorButton("7", modifier = Modifier.weight(1f)) { viewModel.onAction(CalculatorAction.Number("7")) }
-            CalculatorButton("8", modifier = Modifier.weight(1f)) { viewModel.onAction(CalculatorAction.Number("8")) }
-            CalculatorButton("9", modifier = Modifier.weight(1f)) { viewModel.onAction(CalculatorAction.Number("9")) }
-            CalculatorButton("/", modifier = Modifier.weight(1f), enabled = viewModel.operationStates["/"] ?: false) { viewModel.onAction(CalculatorAction.Operation("/")) }
+            CalculatorButton("√", modifier = Modifier.weight(1f), enabled = viewModel.operationStates["√"] ?: false) { haptic.performHapticFeedback(HapticFeedbackType.LongPress); viewModel.onAction(CalculatorAction.UnaryOperation("√")) }
+            CalculatorButton("%", modifier = Modifier.weight(1f), enabled = viewModel.operationStates["%"] ?: false) { haptic.performHapticFeedback(HapticFeedbackType.LongPress); viewModel.onAction(CalculatorAction.UnaryOperation("%")) }
+            Spacer(modifier = Modifier.weight(2f))
         }
         Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(buttonSpacing)) {
-            CalculatorButton("4", modifier = Modifier.weight(1f)) { viewModel.onAction(CalculatorAction.Number("4")) }
-            CalculatorButton("5", modifier = Modifier.weight(1f)) { viewModel.onAction(CalculatorAction.Number("5")) }
-            CalculatorButton("6", modifier = Modifier.weight(1f)) { viewModel.onAction(CalculatorAction.Number("6")) }
-            CalculatorButton("*", modifier = Modifier.weight(1f), enabled = viewModel.operationStates["*"] ?: false) { viewModel.onAction(CalculatorAction.Operation("*")) }
+            CalculatorButton("7", modifier = Modifier.weight(1f)) { haptic.performHapticFeedback(HapticFeedbackType.LongPress); viewModel.onAction(CalculatorAction.Number("7")) }
+            CalculatorButton("8", modifier = Modifier.weight(1f)) { haptic.performHapticFeedback(HapticFeedbackType.LongPress); viewModel.onAction(CalculatorAction.Number("8")) }
+            CalculatorButton("9", modifier = Modifier.weight(1f)) { haptic.performHapticFeedback(HapticFeedbackType.LongPress); viewModel.onAction(CalculatorAction.Number("9")) }
+            CalculatorButton("/", modifier = Modifier.weight(1f), enabled = viewModel.operationStates["/"] ?: false) { haptic.performHapticFeedback(HapticFeedbackType.LongPress); viewModel.onAction(CalculatorAction.Operation("/")) }
         }
         Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(buttonSpacing)) {
-            CalculatorButton("1", modifier = Modifier.weight(1f)) { viewModel.onAction(CalculatorAction.Number("1")) }
-            CalculatorButton("2", modifier = Modifier.weight(1f)) { viewModel.onAction(CalculatorAction.Number("2")) }
-            CalculatorButton("3", modifier = Modifier.weight(1f)) { viewModel.onAction(CalculatorAction.Number("3")) }
-            CalculatorButton("-", modifier = Modifier.weight(1f), enabled = viewModel.operationStates["-"] ?: false) { viewModel.onAction(CalculatorAction.Operation("-")) }
+            CalculatorButton("4", modifier = Modifier.weight(1f)) { haptic.performHapticFeedback(HapticFeedbackType.LongPress); viewModel.onAction(CalculatorAction.Number("4")) }
+            CalculatorButton("5", modifier = Modifier.weight(1f)) { haptic.performHapticFeedback(HapticFeedbackType.LongPress); viewModel.onAction(CalculatorAction.Number("5")) }
+            CalculatorButton("6", modifier = Modifier.weight(1f)) { haptic.performHapticFeedback(HapticFeedbackType.LongPress); viewModel.onAction(CalculatorAction.Number("6")) }
+            CalculatorButton("*", modifier = Modifier.weight(1f), enabled = viewModel.operationStates["*"] ?: false) { haptic.performHapticFeedback(HapticFeedbackType.LongPress); viewModel.onAction(CalculatorAction.Operation("*")) }
         }
         Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(buttonSpacing)) {
-            CalculatorButton("0", modifier = Modifier.weight(1f)) { viewModel.onAction(CalculatorAction.Number("0")) }
-            CalculatorButton("C", modifier = Modifier.weight(1f)) { viewModel.onAction(CalculatorAction.Clear) }
-            CalculatorButton("=", modifier = Modifier.weight(1f)) { viewModel.onAction(CalculatorAction.Equals) }
-            CalculatorButton("+", modifier = Modifier.weight(1f), enabled = viewModel.operationStates["+"] ?: false) { viewModel.onAction(CalculatorAction.Operation("+")) }
+            CalculatorButton("1", modifier = Modifier.weight(1f)) { haptic.performHapticFeedback(HapticFeedbackType.LongPress); viewModel.onAction(CalculatorAction.Number("1")) }
+            CalculatorButton("2", modifier = Modifier.weight(1f)) { haptic.performHapticFeedback(HapticFeedbackType.LongPress); viewModel.onAction(CalculatorAction.Number("2")) }
+            CalculatorButton("3", modifier = Modifier.weight(1f)) { haptic.performHapticFeedback(HapticFeedbackType.LongPress); viewModel.onAction(CalculatorAction.Number("3")) }
+            CalculatorButton("-", modifier = Modifier.weight(1f), enabled = viewModel.operationStates["-"] ?: false) { haptic.performHapticFeedback(HapticFeedbackType.LongPress); viewModel.onAction(CalculatorAction.Operation("-")) }
+        }
+        Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(buttonSpacing)) {
+            CalculatorButton("0", modifier = Modifier.weight(1f)) { haptic.performHapticFeedback(HapticFeedbackType.LongPress); viewModel.onAction(CalculatorAction.Number("0")) }
+            CalculatorButton("C", modifier = Modifier.weight(1f)) { haptic.performHapticFeedback(HapticFeedbackType.LongPress); viewModel.onAction(CalculatorAction.Clear) }
+            CalculatorButton("=", modifier = Modifier.weight(1f)) { haptic.performHapticFeedback(HapticFeedbackType.LongPress); viewModel.onAction(CalculatorAction.Equals) }
+            CalculatorButton("+", modifier = Modifier.weight(1f), enabled = viewModel.operationStates["+"] ?: false) { haptic.performHapticFeedback(HapticFeedbackType.LongPress); viewModel.onAction(CalculatorAction.Operation("+")) }
         }
     }
 }

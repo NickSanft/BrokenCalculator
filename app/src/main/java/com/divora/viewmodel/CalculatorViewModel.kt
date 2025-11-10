@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.divora.data.UserDataStore
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlin.math.sqrt
 
 data class HintInfo(
     val description: String,
@@ -25,7 +26,7 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
     private val userDataStore = UserDataStore(application)
 
     val display = mutableStateOf("0")
-    val operationStates = mutableStateMapOf("+" to true, "-" to false, "*" to false, "/" to false)
+    val operationStates = mutableStateMapOf("+" to true, "-" to false, "*" to false, "/" to false, "√" to false, "%" to false)
     val showHintsDialog = mutableStateOf(false)
     val showAchievementsDialog = mutableStateOf(false)
     val unlockedOperationMessage = mutableStateOf<String?>(null)
@@ -39,12 +40,14 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
         Achievement("The Second Step", "Unlock the division operation.") { operationStates["/"] == true },
         Achievement("The Third Step", "Unlock the multiplication operation.") { operationStates["*"] == true },
         Achievement("The Whole Calculator", "Unlock all operations.") { allOperationsAlreadyUnlocked },
-        Achievement("The Answer", "Calculate the answer to the ultimate question of life, the universe, and everything.") { answerAchievementUnlocked.value }
+        Achievement("The Answer", "Calculate the answer to the ultimate question of life, the universe, and everything.") { answerAchievementUnlocked.value },
+        Achievement("Root of the Problem", "Unlock the square root operation.") { operationStates["√"] == true },
+        Achievement("A Small Percentage", "Unlock the percentage operation.") { operationStates["%"] == true }
     )
 
     val hints: List<HintInfo> = listOf(
         HintInfo(
-            description = "Subtraction (-): 2+2",
+            description = "Subtraction (-)",
             code = """
                 if (expression == "2+2") {
                     operationStates["-"] = true
@@ -53,7 +56,7 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
             isUnlocked = { operationStates["-"] == true }
         ),
         HintInfo(
-            description = "Division (/): 5-1",
+            description = "Division (/)",
             code = """
                 if (expression == "5-1") {
                     operationStates["/"] = true
@@ -62,13 +65,31 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
             isUnlocked = { operationStates["/"] == true }
         ),
         HintInfo(
-            description = "Multiplication (*): Attempt to divide by zero",
+            description = "Multiplication (*)",
             code = """
                 if (result.isNaN()) {
                    operationStates["*"] = true
                 }
             """.trimIndent(),
             isUnlocked = { operationStates["*"] == true }
+        ),
+        HintInfo(
+            description = "Square Root (√)",
+            code = """
+                if (expression == "9*9") {
+                    operationStates["√"] = true
+                }
+            """.trimIndent(),
+            isUnlocked = { operationStates["√"] == true }
+        ),
+        HintInfo(
+            description = "Percentage (%)",
+            code = """
+                if (expression == "100/10") {
+                    operationStates["%"] = true
+                }
+            """.trimIndent(),
+            isUnlocked = { operationStates["%"] == true }
         )
     )
 
@@ -80,6 +101,8 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
             operationStates["-"] = userDataStore.subtractionUnlockedFlow.first()
             operationStates["/"] = userDataStore.divisionUnlockedFlow.first()
             operationStates["*"] = userDataStore.multiplicationUnlockedFlow.first()
+            operationStates["√"] = userDataStore.sqrtUnlockedFlow.first()
+            operationStates["%"] = userDataStore.percentUnlockedFlow.first()
             allOperationsAlreadyUnlocked = userDataStore.allOperationsUnlockedAlreadyFlow.first()
             answerAchievementUnlocked.value = userDataStore.answerAchievementUnlockedFlow.first()
         }
@@ -133,6 +156,16 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
                         unlockedOperationMessage.value = "Congratulations! You've unlocked Division!"
                         viewModelScope.launch { userDataStore.setOperationUnlocked("/", true) }
                     }
+                    if (expression == "9*9" && operationStates["*"] == true && operationStates["√"] == false) {
+                        operationStates["√"] = true
+                        unlockedOperationMessage.value = "Congratulations! You've unlocked Square Root!"
+                        viewModelScope.launch { userDataStore.setOperationUnlocked("√", true) }
+                    }
+                    if (expression == "100/10" && operationStates["/"] == true && operationStates["%"] == false) {
+                        operationStates["%"] = true
+                        unlockedOperationMessage.value = "Congratulations! You've unlocked Percentage!"
+                        viewModelScope.launch { userDataStore.setOperationUnlocked("%", true) }
+                    }
 
                     val result = evaluateExpression(expression)
 
@@ -163,6 +196,19 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
                         answerAchievementUnlocked.value = true
                         viewModelScope.launch { userDataStore.setAnswerAchievementUnlocked(true) }
                     }
+                }
+            }
+            is CalculatorAction.UnaryOperation -> {
+                if (expression.isNotEmpty() && expression.last().isDigit()) {
+                    val number = expression.toDouble()
+                    val result = when (action.operation) {
+                        "√" -> sqrt(number)
+                        "%" -> number / 100
+                        else -> 0.0
+                    }
+                    display.value = result.toString()
+                    expression = result.toString()
+                    resultJustCalculated = true
                 }
             }
             CalculatorAction.ShowHints -> showHintsDialog.value = true
@@ -196,6 +242,8 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
         operationStates["-"] = false
         operationStates["*"] = false
         operationStates["/"] = false
+        operationStates["√"] = false
+        operationStates["%"] = false
         allOperationsAlreadyUnlocked = false
         answerAchievementUnlocked.value = false
     }
@@ -228,6 +276,7 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
 sealed class CalculatorAction {
     data class Number(val number: String) : CalculatorAction()
     data class Operation(val operation: String) : CalculatorAction()
+    data class UnaryOperation(val operation: String) : CalculatorAction()
     object Clear : CalculatorAction()
     object Backspace : CalculatorAction()
     object Equals : CalculatorAction()

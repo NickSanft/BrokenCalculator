@@ -18,6 +18,8 @@ class UserDataStore(private val context: Context) {
         val MULTIPLICATION_UNLOCKED = booleanPreferencesKey("multiplication_unlocked")
         val ALL_OPERATIONS_UNLOCKED_ALREADY = booleanPreferencesKey("all_operations_unlocked_already")
         val ANSWER_ACHIEVEMENT_UNLOCKED = booleanPreferencesKey("answer_achievement_unlocked")
+        val SQRT_UNLOCKED = booleanPreferencesKey("sqrt_unlocked")
+        val PERCENT_UNLOCKED = booleanPreferencesKey("percent_unlocked")
     }
 
     val subtractionUnlockedFlow: Flow<Boolean> = context.dataStore.data.map {
@@ -40,12 +42,22 @@ class UserDataStore(private val context: Context) {
         it[ANSWER_ACHIEVEMENT_UNLOCKED] ?: false
     }
 
+    val sqrtUnlockedFlow: Flow<Boolean> = context.dataStore.data.map {
+        it[SQRT_UNLOCKED] ?: false
+    }
+
+    val percentUnlockedFlow: Flow<Boolean> = context.dataStore.data.map {
+        it[PERCENT_UNLOCKED] ?: false
+    }
+
     suspend fun setOperationUnlocked(operation: String, unlocked: Boolean) {
         context.dataStore.edit {
             when (operation) {
                 "-" -> it[SUBTRACTION_UNLOCKED] = unlocked
                 "/" -> it[DIVISION_UNLOCKED] = unlocked
                 "*" -> it[MULTIPLICATION_UNLOCKED] = unlocked
+                "√" -> it[SQRT_UNLOCKED] = unlocked
+                "%" -> it[PERCENT_UNLOCKED] = unlocked
             }
         }
     }
@@ -69,6 +81,8 @@ class UserDataStore(private val context: Context) {
             it[MULTIPLICATION_UNLOCKED] = false
             it[ALL_OPERATIONS_UNLOCKED_ALREADY] = false
             it[ANSWER_ACHIEVEMENT_UNLOCKED] = false
+            it[SQRT_UNLOCKED] = false
+            it[PERCENT_UNLOCKED] = false
         }
     }
 }
