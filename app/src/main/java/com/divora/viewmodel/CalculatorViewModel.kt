@@ -8,7 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.divora.data.UserDataStore
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlin.math.sqrt
+import java.lang.Math.sqrt
 
 data class HintInfo(
     val description: String,
@@ -85,7 +85,7 @@ class CalculatorViewModel(application: Application, private val userDataStore: U
             description = "Percentage (%)",
             code = """
                 if (expression == "100/10") {
-                    operationStates["%"] = true
+                    operationStates["%"_] = true
                 }
             """.trimIndent(),
             isUnlocked = { operationStates["%"] == true }
@@ -252,18 +252,39 @@ class CalculatorViewModel(application: Application, private val userDataStore: U
         val ops = expression.filter { it in "+-*/" }.toMutableList()
 
         if (numbers.isEmpty()) return 0.0
+        if (ops.size >= numbers.size) return 0.0
 
-        var result = numbers.removeAt(0)
+        // Pass 1: Multiplication and Division
+        val newOps = mutableListOf<Char>()
+        val newNumbers = mutableListOf<Double>()
+        newNumbers.add(numbers[0])
 
-        while (ops.isNotEmpty()) {
-            val op = ops.removeAt(0)
-            if (numbers.isEmpty()) break
-            val number = numbers.removeAt(0)
+        for (i in ops.indices) {
+            val op = ops[i]
+            val rightNumber = numbers[i + 1]
+            if ((op == '*' && operationStates["*"] == true) || (op == '/' && operationStates["/"] == true)) {
+                val leftNumber = newNumbers.removeAt(newNumbers.lastIndex)
+                val result = if (op == '*') {
+                    leftNumber * rightNumber
+                } else {
+                    if (rightNumber == 0.0) return Double.NaN
+                    leftNumber / rightNumber
+                }
+                newNumbers.add(result)
+            } else {
+                newOps.add(op)
+                newNumbers.add(rightNumber)
+            }
+        }
+
+        // Pass 2: Addition and Subtraction
+        var result = newNumbers[0]
+        for (i in newOps.indices) {
+            val op = newOps[i]
+            val number = newNumbers[i + 1]
             result = when (op) {
                 '+' -> result + number
                 '-' -> if (operationStates["-"] == true) result - number else result
-                '*' -> if (operationStates["*"] == true) result * number else result
-                '/' -> if (operationStates["/"] == true && number != 0.0) result / number else if (number == 0.0) Double.NaN else result
                 else -> result
             }
         }
