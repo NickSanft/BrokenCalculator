@@ -84,15 +84,15 @@ fun CalculatorScreen(modifier: Modifier = Modifier, viewModel: CalculatorViewMod
     if (viewModel.showHintsDialog.value) {
         HintsDialog(
             viewModel = viewModel,
-            onDismiss = { viewModel.onAction(CalculatorAction.HideHints) },
-            onReset = { viewModel.onAction(CalculatorAction.Reset) }
+            onDismiss = { viewModel.onAction(CalculatorAction.HideHints) }
         )
     }
 
     if (viewModel.showAchievementsDialog.value) {
         AchievementsDialog(
             viewModel = viewModel,
-            onDismiss = { viewModel.onAction(CalculatorAction.HideAchievements) }
+            onDismiss = { viewModel.onAction(CalculatorAction.HideAchievements) },
+            onReset = { viewModel.onAction(CalculatorAction.Reset) }
         )
     }
 
@@ -270,7 +270,7 @@ fun RowScope.CalculatorButton(
 }
 
 @Composable
-fun HintsDialog(viewModel: CalculatorViewModel, onDismiss: () -> Unit, onReset: () -> Unit) {
+fun HintsDialog(viewModel: CalculatorViewModel, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("How to Unlock Operations") },
@@ -292,17 +292,12 @@ fun HintsDialog(viewModel: CalculatorViewModel, onDismiss: () -> Unit, onReset: 
             Button(onClick = onDismiss) {
                 Text("Close")
             }
-        },
-        dismissButton = {
-            Button(onClick = onReset) {
-                Text("Reset")
-            }
         }
     )
 }
 
 @Composable
-fun AchievementsDialog(viewModel: CalculatorViewModel, onDismiss: () -> Unit) {
+fun AchievementsDialog(viewModel: CalculatorViewModel, onDismiss: () -> Unit, onReset: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Achievements") },
@@ -326,6 +321,11 @@ fun AchievementsDialog(viewModel: CalculatorViewModel, onDismiss: () -> Unit) {
         confirmButton = {
             Button(onClick = onDismiss) {
                 Text("Close")
+            }
+        },
+        dismissButton = {
+            Button(onClick = onReset) {
+                Text("Reset")
             }
         }
     )

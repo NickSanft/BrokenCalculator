@@ -237,7 +237,7 @@ class CalculatorViewModel(application: Application, private val userDataStore: U
                     userDataStore.resetOperations()
                     resetOperations()
                 }
-                showHintsDialog.value = false
+                showAchievementsDialog.value = false
             }
             CalculatorAction.DismissUnlockMessage -> unlockedOperationMessage.value = null
             CalculatorAction.DismissAllOperationsUnlockedDialog -> {
