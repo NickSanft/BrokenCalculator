@@ -30,12 +30,14 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.divora.data.UserDataStore
 import com.divora.ui.theme.BrokenCalculatorTheme
 import com.divora.viewmodel.CalculatorAction
 import com.divora.viewmodel.CalculatorViewModel
+import com.divora.viewmodel.CalculatorViewModelFactory
 
 class MainActivity : ComponentActivity() {
-    private val viewModel: CalculatorViewModel by viewModels()
+    private val viewModel: CalculatorViewModel by viewModels { CalculatorViewModelFactory(application, UserDataStore(applicationContext)) }
 
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {

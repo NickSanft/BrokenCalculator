@@ -22,8 +22,7 @@ data class Achievement(
     val isUnlocked: () -> Boolean
 )
 
-class CalculatorViewModel(application: Application) : AndroidViewModel(application) {
-    private val userDataStore = UserDataStore(application)
+class CalculatorViewModel(application: Application, private val userDataStore: UserDataStore) : AndroidViewModel(application) {
 
     val display = mutableStateOf("0")
     val operationStates = mutableStateMapOf("+" to true, "-" to false, "*" to false, "/" to false, "√" to false, "%" to false)

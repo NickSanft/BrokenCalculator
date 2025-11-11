@@ -9,7 +9,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class UserDataStore(private val context: Context) {
+open class UserDataStore(private val context: Context) {
 
     companion object {
         private val Context.dataStore: DataStore<Preferences> by preferencesDataStore("user_prefs")
@@ -22,35 +22,35 @@ class UserDataStore(private val context: Context) {
         val PERCENT_UNLOCKED = booleanPreferencesKey("percent_unlocked")
     }
 
-    val subtractionUnlockedFlow: Flow<Boolean> = context.dataStore.data.map {
+    open val subtractionUnlockedFlow: Flow<Boolean> = context.dataStore.data.map {
         it[SUBTRACTION_UNLOCKED] ?: false
     }
 
-    val divisionUnlockedFlow: Flow<Boolean> = context.dataStore.data.map {
+    open val divisionUnlockedFlow: Flow<Boolean> = context.dataStore.data.map {
         it[DIVISION_UNLOCKED] ?: false
     }
 
-    val multiplicationUnlockedFlow: Flow<Boolean> = context.dataStore.data.map {
+    open val multiplicationUnlockedFlow: Flow<Boolean> = context.dataStore.data.map {
         it[MULTIPLICATION_UNLOCKED] ?: false
     }
 
-    val allOperationsUnlockedAlreadyFlow: Flow<Boolean> = context.dataStore.data.map {
+    open val allOperationsUnlockedAlreadyFlow: Flow<Boolean> = context.dataStore.data.map {
         it[ALL_OPERATIONS_UNLOCKED_ALREADY] ?: false
     }
     
-    val answerAchievementUnlockedFlow: Flow<Boolean> = context.dataStore.data.map {
+    open val answerAchievementUnlockedFlow: Flow<Boolean> = context.dataStore.data.map {
         it[ANSWER_ACHIEVEMENT_UNLOCKED] ?: false
     }
 
-    val sqrtUnlockedFlow: Flow<Boolean> = context.dataStore.data.map {
+    open val sqrtUnlockedFlow: Flow<Boolean> = context.dataStore.data.map {
         it[SQRT_UNLOCKED] ?: false
     }
 
-    val percentUnlockedFlow: Flow<Boolean> = context.dataStore.data.map {
+    open val percentUnlockedFlow: Flow<Boolean> = context.dataStore.data.map {
         it[PERCENT_UNLOCKED] ?: false
     }
 
-    suspend fun setOperationUnlocked(operation: String, unlocked: Boolean) {
+    open suspend fun setOperationUnlocked(operation: String, unlocked: Boolean) {
         context.dataStore.edit {
             when (operation) {
                 "-" -> it[SUBTRACTION_UNLOCKED] = unlocked
@@ -62,19 +62,19 @@ class UserDataStore(private val context: Context) {
         }
     }
 
-    suspend fun setAllOperationsAlreadyUnlocked(unlocked: Boolean) {
+    open suspend fun setAllOperationsAlreadyUnlocked(unlocked: Boolean) {
         context.dataStore.edit {
             it[ALL_OPERATIONS_UNLOCKED_ALREADY] = unlocked
         }
     }
 
-    suspend fun setAnswerAchievementUnlocked(unlocked: Boolean) {
+    open suspend fun setAnswerAchievementUnlocked(unlocked: Boolean) {
         context.dataStore.edit {
             it[ANSWER_ACHIEVEMENT_UNLOCKED] = unlocked
         }
     }
 
-    suspend fun resetOperations() {
+    open suspend fun resetOperations() {
         context.dataStore.edit {
             it[SUBTRACTION_UNLOCKED] = false
             it[DIVISION_UNLOCKED] = false
