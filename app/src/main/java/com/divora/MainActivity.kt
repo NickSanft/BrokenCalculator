@@ -125,17 +125,25 @@ private fun Display(viewModel: CalculatorViewModel, modifier: Modifier = Modifie
             .padding(16.dp),
         horizontalAlignment = Alignment.End
     ) {
-        viewModel.previewResult.value?.let {
-            Text(
-                text = it,
-                style = MaterialTheme.typography.headlineSmall.copy(color = Color.Gray),
-                textAlign = TextAlign.End,
-            )
-        }
         Text(
             viewModel.display.value,
-            style = MaterialTheme.typography.headlineLarge.copy(fontSize = 60.sp, textAlign = TextAlign.End)
+            style = MaterialTheme.typography.headlineLarge.copy(fontSize = 60.sp, textAlign = TextAlign.End),
+            modifier = Modifier.fillMaxWidth()
         )
+        Box(
+            modifier = Modifier
+                .height(32.dp)
+                .fillMaxWidth(),
+            contentAlignment = Alignment.CenterEnd
+        ) {
+            viewModel.previewResult.value?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.headlineSmall.copy(color = Color.Gray),
+                    textAlign = TextAlign.End
+                )
+            }
+        }
     }
 }
 
@@ -305,7 +313,7 @@ fun AllOperationsUnlockedDialog(onDismiss: () -> Unit) {
         text = { 
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = "\uD83C\uDFC6",
+                    text = "🏆",
                     modifier = Modifier.scale(scale.value),
                     fontSize = 100.sp
                 )
