@@ -8,14 +8,18 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -31,6 +36,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.divora.data.Theme
 import com.divora.data.UserDataStore
 import com.divora.ui.theme.BrokenCalculatorTheme
 import com.divora.viewmodel.CalculatorAction
@@ -45,11 +51,15 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            BrokenCalculatorTheme {
+            val theme by viewModel.theme.collectAsState()
+            BrokenCalculatorTheme(theme = theme) {
                 Scaffold(topBar = {
                     TopAppBar(title = { Text("Broken Calculator") }, actions = {
                         IconButton(onClick = { viewModel.onAction(CalculatorAction.ShowAchievements) }) {
                             Icon(Icons.Default.Star, contentDescription = "Achievements")
+                        }
+                        IconButton(onClick = { viewModel.onAction(CalculatorAction.ShowSettings) }) {
+                            Icon(Icons.Default.Settings, contentDescription = "Settings")
                         }
                         IconButton(onClick = { viewModel.onAction(CalculatorAction.Backspace) }) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Backspace")
@@ -86,6 +96,13 @@ fun CalculatorScreen(modifier: Modifier = Modifier, viewModel: CalculatorViewMod
         )
     }
 
+    if (viewModel.showSettingsDialog.value) {
+        SettingsDialog(
+            viewModel = viewModel,
+            onDismiss = { viewModel.onAction(CalculatorAction.HideSettings) }
+        )
+    }
+
     viewModel.unlockedOperationMessage.value?.let { message ->
         UnlockMessageDialog(
             message = message,
@@ -115,6 +132,51 @@ fun CalculatorScreen(modifier: Modifier = Modifier, viewModel: CalculatorViewMod
             CalculatorButtons(viewModel = viewModel)
         }
     }
+}
+
+@Composable
+fun SettingsDialog(viewModel: CalculatorViewModel, onDismiss: () -> Unit) {
+    val currentTheme by viewModel.theme.collectAsState()
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Settings") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Theme", fontWeight = FontWeight.Bold)
+                Column {
+                    Theme.entries.forEach { theme ->
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .selectable(
+                                    selected = (theme == currentTheme),
+                                    onClick = { viewModel.setTheme(theme) },
+                                    role = Role.RadioButton
+                                )
+                                .padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = (theme == currentTheme),
+                                onClick = null
+                            )
+                            Text(
+                                text = theme.name,
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.padding(start = 16.dp)
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(onClick = onDismiss) {
+                Text("Close")
+            }
+        }
+    )
 }
 
 @Composable

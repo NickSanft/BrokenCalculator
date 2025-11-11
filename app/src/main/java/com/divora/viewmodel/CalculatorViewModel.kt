@@ -5,8 +5,11 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.divora.data.Theme
 import com.divora.data.UserDataStore
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.lang.Math.sqrt
 
@@ -29,11 +32,24 @@ class CalculatorViewModel(application: Application, private val userDataStore: U
     val operationStates = mutableStateMapOf("+" to true, "-" to false, "*" to false, "/" to false, "√" to false, "%" to false)
     val showHintsDialog = mutableStateOf(false)
     val showAchievementsDialog = mutableStateOf(false)
+    val showSettingsDialog = mutableStateOf(false)
     val unlockedOperationMessage = mutableStateOf<String?>(null)
     val allOperationsUnlocked = mutableStateOf(false)
     val calculationTrigger = mutableStateOf(0)
     private var allOperationsAlreadyUnlocked = false
     val answerAchievementUnlocked = mutableStateOf(false)
+
+    val theme = userDataStore.themeFlow.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(),
+        initialValue = Theme.System
+    )
+
+    fun setTheme(theme: Theme) {
+        viewModelScope.launch {
+            userDataStore.setTheme(theme)
+        }
+    }
 
     val achievements: List<Achievement> = listOf(
         Achievement("The First Step", "Unlock the subtraction operation.") { operationStates["-"] == true },
@@ -212,6 +228,8 @@ class CalculatorViewModel(application: Application, private val userDataStore: U
             CalculatorAction.HideHints -> showHintsDialog.value = false
             CalculatorAction.ShowAchievements -> showAchievementsDialog.value = true
             CalculatorAction.HideAchievements -> showAchievementsDialog.value = false
+            CalculatorAction.ShowSettings -> showSettingsDialog.value = true
+            CalculatorAction.HideSettings -> showSettingsDialog.value = false
             CalculatorAction.Reset -> {
                 viewModelScope.launch {
                     userDataStore.resetOperations()
@@ -332,6 +350,8 @@ sealed class CalculatorAction {
     object HideHints : CalculatorAction()
     object ShowAchievements : CalculatorAction()
     object HideAchievements : CalculatorAction()
+    object ShowSettings : CalculatorAction()
+    object HideSettings : CalculatorAction()
     object Reset : CalculatorAction()
     object DismissUnlockMessage : CalculatorAction()
     object DismissAllOperationsUnlockedDialog : CalculatorAction()

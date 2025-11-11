@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -20,6 +21,7 @@ open class UserDataStore(private val context: Context) {
         val ANSWER_ACHIEVEMENT_UNLOCKED = booleanPreferencesKey("answer_achievement_unlocked")
         val SQRT_UNLOCKED = booleanPreferencesKey("sqrt_unlocked")
         val PERCENT_UNLOCKED = booleanPreferencesKey("percent_unlocked")
+        val THEME = stringPreferencesKey("theme")
     }
 
     open val subtractionUnlockedFlow: Flow<Boolean> = context.dataStore.data.map {
@@ -48,6 +50,16 @@ open class UserDataStore(private val context: Context) {
 
     open val percentUnlockedFlow: Flow<Boolean> = context.dataStore.data.map {
         it[PERCENT_UNLOCKED] ?: false
+    }
+
+    open val themeFlow: Flow<Theme> = context.dataStore.data.map {
+        Theme.valueOf(it[THEME] ?: Theme.System.name)
+    }
+
+    open suspend fun setTheme(theme: Theme) {
+        context.dataStore.edit {
+            it[THEME] = theme.name
+        }
     }
 
     open suspend fun setOperationUnlocked(operation: String, unlocked: Boolean) {
