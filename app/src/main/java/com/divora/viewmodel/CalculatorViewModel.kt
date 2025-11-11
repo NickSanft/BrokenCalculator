@@ -25,6 +25,7 @@ data class Achievement(
 class CalculatorViewModel(application: Application, private val userDataStore: UserDataStore) : AndroidViewModel(application) {
 
     val display = mutableStateOf("0")
+    val previewResult = mutableStateOf<String?>(null)
     val operationStates = mutableStateMapOf("+" to true, "-" to false, "*" to false, "/" to false, "√" to false, "%" to false)
     val showHintsDialog = mutableStateOf(false)
     val showAchievementsDialog = mutableStateOf(false)
@@ -85,7 +86,7 @@ class CalculatorViewModel(application: Application, private val userDataStore: U
             description = "Percentage (%)",
             code = """
                 if (expression == "100/10") {
-                    operationStates["%"_] = true
+                    operationStates["%"] = true
                 }
             """.trimIndent(),
             isUnlocked = { operationStates["%"] == true }
@@ -176,25 +177,22 @@ class CalculatorViewModel(application: Application, private val userDataStore: U
                         }
                         display.value = "Error"
                         expression = ""
-                        resultJustCalculated = true
-                        checkAllOperationsUnlocked()
-                        return
-                    }
-
-                    val resultString = if (result.rem(1.0) == 0.0) {
-                        result.toLong().toString()
                     } else {
-                        result.toString()
+                        val resultString = if (result.rem(1.0) == 0.0) {
+                            result.toLong().toString()
+                        } else {
+                            result.toString()
+                        }
+                        display.value = resultString
+                        expression = resultString
+
+                        if (resultString == "42") {
+                            answerAchievementUnlocked.value = true
+                            viewModelScope.launch { userDataStore.setAnswerAchievementUnlocked(true) }
+                        }
                     }
-                    display.value = resultString
-                    expression = resultString
                     resultJustCalculated = true
                     checkAllOperationsUnlocked()
-
-                    if (resultString == "42") {
-                        answerAchievementUnlocked.value = true
-                        viewModelScope.launch { userDataStore.setAnswerAchievementUnlocked(true) }
-                    }
                 }
             }
             is CalculatorAction.UnaryOperation -> {
@@ -228,6 +226,37 @@ class CalculatorViewModel(application: Application, private val userDataStore: U
                 viewModelScope.launch { userDataStore.setAllOperationsAlreadyUnlocked(true) }
             }
         }
+        updatePreview()
+    }
+
+    private fun updatePreview() {
+        if (resultJustCalculated || expression.isEmpty() || !expression.last().isDigit()) {
+            previewResult.value = null
+            return
+        }
+
+        if (!expression.any { it in "+-*/" }) {
+            previewResult.value = null
+            return
+        }
+
+        val result = evaluateExpression(expression)
+
+        if (result.isNaN()) {
+            previewResult.value = "Error"
+        } else {
+            val resultString = if (result.rem(1.0) == 0.0) {
+                result.toLong().toString()
+            } else {
+                String.format("%.4f", result).trimEnd('0').trimEnd('.')
+            }
+
+            if (resultString == expression) {
+                previewResult.value = null
+            } else {
+                previewResult.value = resultString
+            }
+        }
     }
 
     private fun checkAllOperationsUnlocked() {
@@ -251,8 +280,7 @@ class CalculatorViewModel(application: Application, private val userDataStore: U
         val numbers = expression.split(Regex("[+\\-*/]")).mapNotNull { it.toDoubleOrNull() }.toMutableList()
         val ops = expression.filter { it in "+-*/" }.toMutableList()
 
-        if (numbers.isEmpty()) return 0.0
-        if (ops.size >= numbers.size) return 0.0
+        if (numbers.isEmpty() || ops.size >= numbers.size) return 0.0
 
         // Pass 1: Multiplication and Division
         val newOps = mutableListOf<Char>()

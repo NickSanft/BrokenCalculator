@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -101,14 +102,7 @@ fun CalculatorScreen(modifier: Modifier = Modifier, viewModel: CalculatorViewMod
 
     if (isLandscape) {
         Row(modifier = modifier.fillMaxSize().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                viewModel.display.value,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(16.dp)
-                    .align(Alignment.CenterVertically),
-                style = MaterialTheme.typography.headlineLarge.copy(fontSize = 60.sp, textAlign = TextAlign.End)
-            )
+            Display(viewModel, modifier = Modifier.weight(1f).align(Alignment.CenterVertically))
             CalculatorButtons(viewModel = viewModel, modifier = Modifier.weight(1f))
         }
     } else { // Portrait
@@ -117,15 +111,31 @@ fun CalculatorScreen(modifier: Modifier = Modifier, viewModel: CalculatorViewMod
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Bottom
         ) {
-            Text(
-                viewModel.display.value,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                style = MaterialTheme.typography.headlineLarge.copy(fontSize = 60.sp, textAlign = TextAlign.End)
-            )
+            Display(viewModel)
             CalculatorButtons(viewModel = viewModel)
         }
+    }
+}
+
+@Composable
+private fun Display(viewModel: CalculatorViewModel, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.End
+    ) {
+        viewModel.previewResult.value?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.headlineSmall.copy(color = Color.Gray),
+                textAlign = TextAlign.End,
+            )
+        }
+        Text(
+            viewModel.display.value,
+            style = MaterialTheme.typography.headlineLarge.copy(fontSize = 60.sp, textAlign = TextAlign.End)
+        )
     }
 }
 
