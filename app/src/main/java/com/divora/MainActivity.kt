@@ -348,10 +348,31 @@ fun CodeSnippet(code: String) {
 
 @Composable
 fun UnlockMessageDialog(message: String, onDismiss: () -> Unit) {
+    val scale = remember { Animatable(0f) }
+    LaunchedEffect(key1 = true) {
+        scale.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(
+                durationMillis = 500,
+                easing = EaseOutBounce
+            )
+        )
+    }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Operation Unlocked!") },
-        text = { Text(message) },
+        text = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "✨",
+                    modifier = Modifier.scale(scale.value),
+                    fontSize = 100.sp,
+                    textAlign = TextAlign.Center
+                )
+                Text(text = message, textAlign = TextAlign.Center)
+            }
+        },
         confirmButton = {
             Button(onClick = onDismiss) {
                 Text("OK")
@@ -377,13 +398,14 @@ fun AllOperationsUnlockedDialog(onDismiss: () -> Unit) {
         onDismissRequest = onDismiss,
         title = { Text(text = "Congratulations!") },
         text = { 
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = "🏆",
                     modifier = Modifier.scale(scale.value),
-                    fontSize = 100.sp
+                    fontSize = 100.sp,
+                    textAlign = TextAlign.Center
                 )
-                Text(text = "You have unlocked all the operations!")
+                Text(text = "You have unlocked all the operations!", textAlign = TextAlign.Center)
             }
         },
         confirmButton = {
