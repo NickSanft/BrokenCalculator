@@ -122,6 +122,50 @@ class CalculatorViewModelTest {
         assertEquals(true, viewModel.operationStates["-"])
         assertEquals("Congratulations! You've unlocked Subtraction!", viewModel.unlockedOperationMessage.value)
     }
+
+    @Test
+    fun `test unlock division`() {
+        viewModel.operationStates["-"] = true
+        viewModel.onAction(CalculatorAction.Number("5"))
+        viewModel.onAction(CalculatorAction.Operation("-"))
+        viewModel.onAction(CalculatorAction.Number("1"))
+        viewModel.onAction(CalculatorAction.Equals)
+        assertEquals(true, viewModel.operationStates["/"])
+        assertEquals("Congratulations! You've unlocked Division!", viewModel.unlockedOperationMessage.value)
+    }
+
+    @Test
+    fun `test unlock multiplication`() {
+        viewModel.operationStates["/"] = true
+        viewModel.onAction(CalculatorAction.Number("1"))
+        viewModel.onAction(CalculatorAction.Operation("/"))
+        viewModel.onAction(CalculatorAction.Number("0"))
+        viewModel.onAction(CalculatorAction.Equals)
+        assertEquals(true, viewModel.operationStates["*"])
+        assertEquals("Congratulations! You've unlocked Multiplication!", viewModel.unlockedOperationMessage.value)
+    }
+
+    @Test
+    fun `test unlock square root`() {
+        viewModel.operationStates["*"] = true
+        viewModel.onAction(CalculatorAction.Number("9"))
+        viewModel.onAction(CalculatorAction.Operation("*"))
+        viewModel.onAction(CalculatorAction.Number("9"))
+        viewModel.onAction(CalculatorAction.Equals)
+        assertEquals(true, viewModel.operationStates["√"])
+        assertEquals("Congratulations! You've unlocked Square Root!", viewModel.unlockedOperationMessage.value)
+    }
+
+    @Test
+    fun `test unlock percentage`() {
+        viewModel.operationStates["/"] = true
+        viewModel.onAction(CalculatorAction.Number("100"))
+        viewModel.onAction(CalculatorAction.Operation("/"))
+        viewModel.onAction(CalculatorAction.Number("10"))
+        viewModel.onAction(CalculatorAction.Equals)
+        assertEquals(true, viewModel.operationStates["%"])
+        assertEquals("Congratulations! You've unlocked Percentage!", viewModel.unlockedOperationMessage.value)
+    }
     
     @Test
     fun `test reset action`() = runTest {
