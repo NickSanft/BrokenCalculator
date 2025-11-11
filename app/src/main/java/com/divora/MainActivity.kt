@@ -114,6 +114,10 @@ fun CalculatorScreen(modifier: Modifier = Modifier, viewModel: CalculatorViewMod
         AllOperationsUnlockedDialog(onDismiss = { viewModel.onAction(CalculatorAction.DismissAllOperationsUnlockedDialog) })
     }
 
+    if (viewModel.showTheAnswerDialog.value) {
+        TheAnswerDialog(onDismiss = { viewModel.onAction(CalculatorAction.DismissTheAnswerDialog) })
+    }
+
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
@@ -380,6 +384,41 @@ fun AllOperationsUnlockedDialog(onDismiss: () -> Unit) {
                     fontSize = 100.sp
                 )
                 Text(text = "You have unlocked all the operations!")
+            }
+        },
+        confirmButton = {
+            Button(onClick = onDismiss) {
+                Text("OK")
+            }
+        }
+    )
+}
+
+@Composable
+fun TheAnswerDialog(onDismiss: () -> Unit) {
+    val scale = remember { Animatable(0f) }
+    LaunchedEffect(key1 = true) {
+        scale.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(
+                durationMillis = 1000,
+                easing = EaseOutBounce
+            )
+        )
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = "You've Found The Answer!") },
+        text = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "🌌",
+                    modifier = Modifier.scale(scale.value),
+                    fontSize = 100.sp,
+                    textAlign = TextAlign.Center
+                )
+                Text(text = "The answer to the ultimate question of life, the universe, and everything is 42.", textAlign = TextAlign.Center)
             }
         },
         confirmButton = {

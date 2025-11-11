@@ -35,6 +35,7 @@ class CalculatorViewModel(application: Application, private val userDataStore: U
     val showSettingsDialog = mutableStateOf(false)
     val unlockedOperationMessage = mutableStateOf<String?>(null)
     val allOperationsUnlocked = mutableStateOf(false)
+    val showTheAnswerDialog = mutableStateOf(false)
     val calculationTrigger = mutableStateOf(0)
     private var allOperationsAlreadyUnlocked = false
     val answerAchievementUnlocked = mutableStateOf(false)
@@ -202,8 +203,9 @@ class CalculatorViewModel(application: Application, private val userDataStore: U
                         display.value = resultString
                         expression = resultString
 
-                        if (resultString == "42") {
+                        if (resultString == "42" && !answerAchievementUnlocked.value) {
                             answerAchievementUnlocked.value = true
+                            showTheAnswerDialog.value = true
                             viewModelScope.launch { userDataStore.setAnswerAchievementUnlocked(true) }
                         }
                     }
@@ -242,6 +244,9 @@ class CalculatorViewModel(application: Application, private val userDataStore: U
                 allOperationsUnlocked.value = false
                 allOperationsAlreadyUnlocked = true
                 viewModelScope.launch { userDataStore.setAllOperationsAlreadyUnlocked(true) }
+            }
+            CalculatorAction.DismissTheAnswerDialog -> {
+                showTheAnswerDialog.value = false
             }
         }
         updatePreview()
@@ -355,4 +360,5 @@ sealed class CalculatorAction {
     object Reset : CalculatorAction()
     object DismissUnlockMessage : CalculatorAction()
     object DismissAllOperationsUnlockedDialog : CalculatorAction()
+    object DismissTheAnswerDialog : CalculatorAction()
 }
